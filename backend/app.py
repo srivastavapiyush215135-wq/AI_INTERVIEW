@@ -1,15 +1,15 @@
 from fastapi import FastAPI, UploadFile, File
-from resume_parser import extract_text_from_pdf
-from interview import generate_questions
-from evaluator import evaluate_answer
+from backend.resume_parser import extract_text_from_pdf
+from backend.interview import generate_questions
+from backend.evaluator import evaluate_answer
 from pydantic import BaseModel
-from database import engine
-from models import Base
+from backend.database import engine
+from backend.models import Base
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import Interview
+from backend.database import get_db
+from backend.models import Interview
 
 Base.metadata.create_all(bind=engine)
 import shutil
