@@ -8,7 +8,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-BACKEND = "http://127.0.0.1:8000"
+BACKEND = "https://ai-interview-platform-s4j9.onrender.com/"
 with st.sidebar:
 
     st.title("🤖 AI Interview")
