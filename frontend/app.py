@@ -227,19 +227,30 @@ if (
 
 
     # ---------------- INTERVIEW COMPLETE ----------------
-    else:
 
-        st.balloons()
+                  else:
+    st.balloons()
+    st.success("🎉 Interview Completed!")
+    st.markdown("## 📊 Final Interview Report")
 
-        st.success(
-            "🎉 Interview Completed!"
-        )
+    # Your existing metrics here...
 
+    report = f"""
+AI INTERVIEW REPORT
 
-        st.markdown(
-            "## 📊 Final Interview Report"
-        )
+Candidate: {st.session_state.get("candidate", "Candidate")}
+Target Role: {st.session_state.get("role", "Not specified")}
+Questions Attempted: {len(questions)}
 
+Interview completed successfully.
+"""
+
+    st.download_button(
+        label="📥 Download Interview Report",
+        data=report,
+        file_name="AI_Interview_Report.txt",
+        mime="text/plain"
+    )
         if st.session_state.scores:
 
             avg_score = (
