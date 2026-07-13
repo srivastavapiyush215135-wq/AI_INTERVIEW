@@ -8,7 +8,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-BACKEND = "https://ai-interview-platform-s4j9.onrender.com/"
+BACKEND = "https://ai-interview-platform-s4j9.onrender.com"
 with st.sidebar:
 
     st.title("🤖 AI Interview")
@@ -98,11 +98,24 @@ if uploaded_file:
         )
 
         data = response.json()
-        st.session_state.scores = []
+        st.write("Backend Response:", data)
+        if "interview_questions" not in data:
+            st.error(f"Backend Error: {data}")
+            st.stop()
+            st.session_state.scores = []
+            st.session_state.questions = data["interview_questions"]
+            st.session_state.current_index = 0
 
-        st.session_state.questions = data["interview_questions"]
-        st.session_state.current_index = 0
-       
+    
+
+    
+
+
+
+
+
+
+
 
 
 if "questions" in st.session_state:
