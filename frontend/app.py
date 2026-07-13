@@ -4,77 +4,44 @@ import requests
 st.set_page_config(
     page_title="AI Interview Platform",
     page_icon="🤖",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 BACKEND = "https://ai-interview-platform-s4j9.onrender.com"
+
+# ---------------- SIDEBAR ----------------
 with st.sidebar:
-
     st.title("🤖 AI Interview")
-
     st.markdown("---")
-
     st.success("🟢 Backend Connected")
 
     st.markdown("### Features")
-
     st.write("✅ Resume Parsing")
     st.write("✅ AI Questions")
     st.write("✅ AI Evaluation")
     st.write("🚀 Interview Report")
-    st.write("📊 Dashboard")
 
-    st.markdown("---")
+# ---------------- TITLE ----------------
+st.title("🤖 AI Interview Platform")
+st.write("Practice real interviews powered by Generative AI.")
 
-    st.caption("Version 1.0")
+# ---------------- SESSION STATE ----------------
+if "current_index" not in st.session_state:
+    st.session_state.current_index = 0
 
-st.markdown("""
-<style>
-.main-title{
-    font-size:42px;
-    font-weight:800;
-    color:#4F8BF9;
-}
-.subtitle{
-    font-size:18px;
-    color:#808080;
-}
-.card{
-    background-color:#262730;
-    padding:18px;
-    border-radius:12px;
-    border:1px solid #3b3b3b;
-    margin-bottom:10px;
-}
-</style>
-""", unsafe_allow_html=True)
+if "scores" not in st.session_state:
+    st.session_state.scores = []
 
-st.markdown(
-    '<p class="main-title">🤖 AI Interview Platform</p>',
-    unsafe_allow_html=True
+# ---------------- CANDIDATE DETAILS ----------------
+st.markdown("## Candidate Details")
+
+candidate = st.text_input("Candidate Name")
+role = st.text_input(
+    "Target Role",
+    value="Mechanical Engineer"
 )
 
-st.markdown(
-    '<p class="subtitle">Practice real interviews powered by Generative AI.</p>',
-    unsafe_allow_html=True
-)
-
-st.divider()
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.info("📄 Resume Analysis")
-
-with col2:
-    st.success("🧠 Gemini AI")
-
-with col3:
-    st.warning("🎯 Personalized Questions")
-
-st.divider()
-
+# ---------------- RESUME UPLOAD ----------------
 st.markdown("## Upload Resume")
 
 uploaded_file = st.file_uploader(
@@ -84,158 +51,214 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
     st.success("✅ Resume Uploaded Successfully")
-if uploaded_file:
-
-    files = {
-        "file": (uploaded_file.name, uploaded_file, "application/pdf")
-    }
 
     if st.button("Generate Interview"):
 
-        response = requests.post(
-            f"{BACKEND}/upload-resume/",
-            files=files
-        )
+        if not candidate.strip():
+            st.warning("Please enter candidate name.")
+            st.stop()
 
-        data = response.json()
-       
-        if "interview_questions"  in data:
-            st.session_state["questions"] = data["interview_questions"]
-            
-            st.session_state["current index"] = 0
-            st.session_state["scores"] = []
+        if not role.strip():
+            st.warning("Please enter target role.")
+            st.stop()
+
+        files = {
+            "file": (
+                uploaded_file.name,
+                uploaded_file,
+                "application/pdf"
+            )
+        }
+
+        try:
+            response = requests.post(
+                f"{BACKEND}/upload-resume/",
+                files=files,
+                timeout=120
+            )
+
+            response.raise_for_status()
+            data = response.json()
+
+        except Exception as e:
+            st.error(f"Backend Error: {e}")
+            st.stop()
+
+        if "interview_questions" in data:
+
+            st.session_state.questions = data[
+                "interview_questions"
+            ]
+
+            st.session_state.current_index = 0
+            st.session_state.scores = []
+
+            # Save these for evaluate-answer API
+            st.session_state.candidate = candidate
+            st.session_state.role = role
+
             st.rerun()
+
         else:
-            st.error ("Backend didn't return interview questions")
-            st.json()
+            st.error(
+                "Backend didn't return interview questions."
+            )
+            st.json(data)
             st.stop()
 
-           
-if "current_index" not in st.session_state:
-    st.session_state["current_index"] = 0
 
-if "scores" not in st.session_state:
-    st.session_state["scores"] = []
-    
+# ---------------- INTERVIEW ----------------
+if (
+    "questions" in st.session_state
+    and st.session_state.questions
+):
 
-    
+    current = st.session_state.current_index
+    questions = st.session_state.questions
 
+    # Interview still running
+    if current < len(questions):
 
+        question = questions[current]
 
+        progress = (
+            current + 1
+        ) / len(questions)
 
+        st.progress(progress)
 
-
-
-
-
-if "questions" in st.session_state:
-
-    current = st.session_state["current_index"]
-
-    question = st.session_state["questions"][current]
-    progress = (current + 1) / len(st.session_state.questions)
-    st.progress(progress)
-
-
-    st.subheader(f"Question {current+1}/10")
-
-    st.write(question)
-
-    answer = st.text_area("Your Answer")
-
-    if st.button("Submit Answer"):
-        if not answer.strip():
-            st.warning("Please enter an answer.")
-            st.stop()
-        
-        
-
-    
-        response = requests.post(
-            f"{BACKEND}/evaluate-answer/",
-            json={
-                "question": question,
-                "answer": answer
-            }
+        st.subheader(
+            f"Question {current + 1}/{len(questions)}"
         )
 
-        feedback = response.json()
-        st.write(feedback)
+        st.write(question)
 
-        st.subheader("AI Feedback")
+        answer = st.text_area(
+            "Your Answer",
+            key=f"answer_{current}"
+        )
 
-        st.write(feedback["feedback"])
-        if "score" in feedback:
-            st.metric(
-                "Interview Score",
-                f"{feedback['score']}/10"
+        if st.button(
+            "Submit Answer",
+            key=f"submit_{current}"
+        ):
 
+            if not answer.strip():
+                st.warning(
+                    "Please enter an answer."
+                )
+                st.stop()
 
+            # IMPORTANT:
+            # Backend requires all 4 fields
+            payload = {
+                "candidate":
+                    st.session_state.candidate,
 
+                "role":
+                    st.session_state.role,
+
+                "question":
+                    question,
+
+                "answer":
+                    answer
+            }
+
+            try:
+
+                response = requests.post(
+                    f"{BACKEND}/evaluate-answer/",
+                    json=payload,
+                    timeout=120
+                )
+
+                # Show API error safely
+                if response.status_code != 200:
+
+                    st.error(
+                        f"API Error: "
+                        f"{response.status_code}"
+                    )
+
+                    try:
+                        st.json(response.json())
+                    except Exception:
+                        st.write(response.text)
+
+                    st.stop()
+
+                feedback = response.json()
+
+            except Exception as e:
+
+                st.error(
+                    f"Backend request failed: {e}"
+                )
+
+                st.stop()
+
+            # ---------------- FEEDBACK ----------------
+            st.subheader("AI Feedback")
+
+            st.write(
+                feedback.get(
+                    "feedback",
+                    "No feedback returned."
+                )
             )
-            st.session_state.scores.append(
-                feedback["score"]
+
+            # Score if backend returns one
+            if "score" in feedback:
+
+                st.metric(
+                    "Interview Score",
+                    f"{feedback['score']}/10"
+                )
+
+                st.session_state.scores.append(
+                    feedback["score"]
+                )
+
+            # Move to next question
+            st.session_state.current_index += 1
+
+            st.rerun()
 
 
+    # ---------------- INTERVIEW COMPLETE ----------------
+    else:
+
+        st.balloons()
+
+        st.success(
+            "🎉 Interview Completed!"
+        )
+
+        st.markdown(
+            "## 📊 Final Interview Report"
+        )
+
+        if st.session_state.scores:
+
+            avg_score = (
+                sum(st.session_state.scores)
+                / len(st.session_state.scores)
             )
 
-        else:
-            st.balloons()
-            st.success("🎉 Interview Completed!")
-            st.markdown("## 📊 Final Interview Report")
-    
-
-    
-
-   
-
-    if "scores" in st.session_state and st.session_state.scores:
-
-        avg_score = sum(
-            st.session_state.scores
-        ) / len(st.session_state.scores)
-
-        col1, col2 = st.columns(2)
-
-        with col1:
             st.metric(
                 "Average Score",
                 f"{avg_score:.2f}/10"
             )
 
-        with col2:
-            st.metric(
-                "Questions Attempted",
-                len(st.session_state.questions)
-            )
+        st.metric(
+            "Questions Attempted",
+            len(questions)
+        )
 
-    st.success("""
-    ✅ Resume analyzed  
-    ✅ AI questions generated  
-    ✅ Answers evaluated  
-    ✅ Performance report created
-    """)
-                         
-
-
-
-
-
-             
-
-
-
-
-
-
-
-
-
- 
-           
-        
-        
-
-
-
-   
+        st.success("""
+        ✅ Resume analyzed  
+        ✅ AI questions generated  
+        ✅ Answers evaluated  
+        ✅ Interview completed
+        """)
