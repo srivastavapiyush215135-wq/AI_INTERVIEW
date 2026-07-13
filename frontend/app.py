@@ -251,7 +251,8 @@ Interview completed successfully.
         file_name="AI_Interview_Report.txt",
         mime="text/plain"
     )
-        if st.session_state.scores:
+    
+     if st.session_state.scores:
 
             avg_score = (
                 sum(st.session_state.scores)
