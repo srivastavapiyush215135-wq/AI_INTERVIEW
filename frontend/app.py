@@ -160,6 +160,7 @@ if "questions" in st.session_state:
         )
 
         feedback = response.json()
+        st.write(feedback)
 
         st.subheader("AI Feedback")
 
