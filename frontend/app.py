@@ -234,23 +234,7 @@ if (
         st.success(
             "🎉 Interview Completed!"
         )
-        report = f"""
-AI INTERVIEW REPORT
 
-Candidate: {st.session_state.get("candidate", "Candidate")}
-Target Role: {st.session_state.get("role", "Not specified")}
-
-Questions Attempted: {len(questions)}
-
-Interview completed successfully.
-"""
-
-st.download_button(
-    label="📥 Download Interview Report",
-    data=report,
-    file_name="AI_Interview_Report.txt",
-    mime="text/plain"
-)
 
         st.markdown(
             "## 📊 Final Interview Report"
