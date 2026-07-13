@@ -99,12 +99,18 @@ if uploaded_file:
 
         data = response.json()
         st.write("Backend Response:", data)
-        if "interview_questions" not in data:
-            st.error(f"Backend Error: {data}")
+        if "interview_questions"  in data:
+            st.session_state["questions"] = 
+            data["intervie_questions"]
+            st.session_state["current index"] = 0
+            st.session_state["scores"] = []
+            st.rerun()
+        else:
+            st.error ("Backend didn't return interview questions")
+            st.json()
             st.stop()
-            st.session_state.scores = []
-            st.session_state.questions = data["interview_questions"]
-            st.session_state.current_index = 0
+
+           
 
     
 
@@ -120,9 +126,9 @@ if uploaded_file:
 
 if "questions" in st.session_state:
 
-    current = st.session_state.current_index
+    current = st.session_state["current_index"]
 
-    question = st.session_state.questions[current]
+    question = st.session_state["questions"][current]
     progress = (current + 1) / len(st.session_state.questions)
     st.progress(progress)
 
