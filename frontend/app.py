@@ -228,7 +228,7 @@ if (
 
     # ---------------- INTERVIEW COMPLETE ----------------
 
-                  else:
+else:
     st.balloons()
     st.success("🎉 Interview Completed!")
     st.markdown("## 📊 Final Interview Report")
