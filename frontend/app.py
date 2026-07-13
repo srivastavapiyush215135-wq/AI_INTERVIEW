@@ -111,7 +111,11 @@ if uploaded_file:
             st.stop()
 
            
+if "current_index" not in st.session_state:
+    st.session_state["current_index"] = 0
 
+if "scores" not in st.session_state:
+    st.session_state["scores"] = []
     
 
     
