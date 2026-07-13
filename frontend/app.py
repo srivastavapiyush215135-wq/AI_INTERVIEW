@@ -100,8 +100,8 @@ if uploaded_file:
         data = response.json()
         st.write("Backend Response:", data)
         if "interview_questions"  in data:
-            st.session_state["questions"] = 
-            data["intervie_questions"]
+            st.session_state["questions"] = data["intervie_questions"]
+            
             st.session_state["current index"] = 0
             st.session_state["scores"] = []
             st.rerun()
