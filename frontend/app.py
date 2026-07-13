@@ -252,7 +252,7 @@ Interview completed successfully.
         mime="text/plain"
     )
     
-     if st.session_state.scores:
+ if st.session_state.scores:
 
             avg_score = (
                 sum(st.session_state.scores)
